@@ -35,10 +35,20 @@ async function run() {
     const vendorCollection = db.collection("vendor");
     const ticketCollection = db.collection("tickets");
     const userCollections = db.collection("user");
+    const bookingCollection = db.collection("bookings");
+    const paymentCollection = db.collection("payments");
 
     app.get("/tickets", async (req, res) => {
       const result = await ticketCollection.find().toArray();
-      req.send(result);
+      res.send(result);
+    });
+
+    app.get("/single-ticket/:ticketId", async (req, res) => {
+      const { ticketId } = req.params;
+      const result = await ticketCollection.findOne({
+        _id: new ObjectId(ticketId),
+      });
+      res.send(result);
     });
 
     app.post("/api/vendor", async (req, res) => {});
