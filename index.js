@@ -51,6 +51,57 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/tickets", async (req, res) => {
+      try {
+        const ticket = {
+          ...req.body,
+          verificationStatus: "pending",
+          isAdvertised: false,
+          createdAt: new Date(),
+        };
+        const result = await ticketCollection.insertOne(ticket);
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: err.message });
+      }
+    });
+
+    // POST create a booking (user)
+    app.post("/api/bookings", async (req, res) => {
+      try {
+        const { ticketId, userEmail, quantity } = req.body;
+
+        const ticket = await ticketCollection.findOne({
+          _id: new ObjectId(ticketId),
+        });
+        if (!ticket) return res.status(404).send({ error: "Ticket not found" });
+        if (ticket.quantity < quantity) {
+          return res.status(400).send({ error: "Not enough seats available." });
+        }
+
+        const booking = {
+          ticketId,
+          ticketTitle: ticket.title,
+          ticketImage: ticket.image,
+          from: ticket.from,
+          to: ticket.to,
+          departureDate: ticket.departureDate,
+          unitPrice: ticket.price,
+          quantity,
+          totalPrice: ticket.price * quantity,
+          userEmail,
+          vendorEmail: ticket.vendorEmail,
+          status: "pending",
+          createdAt: new Date(),
+        };
+
+        const result = await bookingCollection.insertOne(booking);
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: err.message });
+      }
+    });
+
     app.post("/api/vendor", async (req, res) => {});
 
     await client.db("admin").command({ ping: 1 });
