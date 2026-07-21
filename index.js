@@ -30,7 +30,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const db = client.db("ticketTrail");
     const vendorCollection = db.collection("vendor");
     const ticketCollection = db.collection("tickets");
@@ -97,6 +97,31 @@ async function run() {
 
         const result = await bookingCollection.insertOne(booking);
         res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: err.message });
+      }
+    });
+
+    app.delete("/tickets/:ticketId", async (req, res) => {
+      try {
+        const { ticketId } = req.params;
+        const result = await ticketCollection.deleteOne({
+          _id: new ObjectId(ticketId),
+        });
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: err.message });
+      }
+    });
+
+    app.get("/vendor-tickets/:email", async (req, res) => {
+      try {
+        const { email } = req.params;
+        const tickets = await ticketCollection
+          .find({ vendorEmail: email })
+          .sort({ createdAt: -1 })
+          .toArray();
+        res.send(tickets);
       } catch (err) {
         res.status(500).send({ error: err.message });
       }
