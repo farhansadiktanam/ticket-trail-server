@@ -114,6 +114,20 @@ async function run() {
       }
     });
 
+    // PATCH update ticket (vendor)
+    app.patch("/tickets/:ticketId", async (req, res) => {
+      try {
+        const ticketId = req.params;
+        const result = await ticketCollection.updateOne(
+          { _id: new ObjectId(ticketId) },
+          { $set: req.body },
+        );
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: err.message });
+      }
+    });
+
     app.get("/vendor-tickets/:email", async (req, res) => {
       try {
         const { email } = req.params;
@@ -122,6 +136,20 @@ async function run() {
           .sort({ createdAt: -1 })
           .toArray();
         res.send(tickets);
+      } catch (err) {
+        res.status(500).send({ error: err.message });
+      }
+    });
+
+    // GET bookings for a user
+    app.get("/bookings/user/:email", async (req, res) => {
+      try {
+        const { email } = req.params;
+        const bookings = await bookingCollection
+          .find({ userEmail: email })
+          .sort({ createdAt: -1 })
+          .toArray();
+        res.send(bookings);
       } catch (err) {
         res.status(500).send({ error: err.message });
       }
